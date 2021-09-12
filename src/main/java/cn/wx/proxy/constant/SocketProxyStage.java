@@ -11,6 +11,10 @@ public enum SocketProxyStage {
    */
   Handshake,
   /**
+   * 授权阶段
+   */
+  MethodAuth,
+  /**
    * 命令阶段
    */
   Cmd,

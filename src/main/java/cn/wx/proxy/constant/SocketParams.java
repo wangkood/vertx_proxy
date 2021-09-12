@@ -16,6 +16,8 @@ public class SocketParams {
 
   public static final byte RSV = 0x00;
 
+  public static final byte METHOD_PASSWD_VER = 0x01;
+
   @Getter
   @Accessors(fluent = true)
   @AllArgsConstructor
@@ -75,16 +77,16 @@ public class SocketParams {
     /**
      * 用户名和密码认证
      */
-    Passwd((byte) 0x03),
-    /**
-     * 保留作私有用处
-     */
-    ReservedForPrivate((byte) 0x80),
+    Passwd((byte) 0x02),
     /**
      * 不接受任何方法 / 没有合适方法
      */
     NoAcceptable((byte) 0xFF),
     ;
+    /**
+     * 0x03 to 0x7f IanaAssigned 一般不用，inna保留
+     * 0x80 to 0xfe Reserved For Private Methods 保留作私有用处
+     */
     final byte byteCode;
 
     public static METHOD valueOfCode(byte byteCode) {
@@ -142,5 +144,23 @@ public class SocketParams {
       return Arrays.stream(values()).filter(v -> v.byteCode == byteCode).findFirst().orElse(null);
     }
   }
+
+
+  @Getter
+  @Accessors(fluent = true)
+  @AllArgsConstructor
+  public enum MethodPasswdStatus {
+    /**
+     * 登录成功
+     */
+    Success((byte) 0x00),
+    /**
+     * 登录失败
+     */
+    Fail((byte) 0x01),
+    ;
+    final byte byteCode;
+  }
+
 
 }
