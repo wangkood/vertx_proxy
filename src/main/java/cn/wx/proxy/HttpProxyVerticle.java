@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.NetClient;
+import io.vertx.core.net.SocketAddress;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Map;
@@ -20,6 +21,8 @@ import java.util.Objects;
 @Log4j2
 public class HttpProxyVerticle extends AbstractVerticle {
 
+  private static final String PROXY_CONNECTION_HEADER = "Proxy-Connection";
+
   private static NetClient netClient;
   private static HttpClient httpClient;
 
@@ -31,8 +34,8 @@ public class HttpProxyVerticle extends AbstractVerticle {
     vertx.createHttpServer()
       .requestHandler(request -> {
         if (request.method().equals(HttpMethod.CONNECT)) {
-          handlerTunnelProxy(request);
-        } else if (request.headers().contains("Proxy-Connection")) {
+          handlerHttpsProxy(request);
+        } else if (request.headers().contains(PROXY_CONNECTION_HEADER)) {
           handlerHttpProxy(request);
         } else {
           request.response().end("HELLO, I`M PROXY SERVER");
@@ -48,16 +51,14 @@ public class HttpProxyVerticle extends AbstractVerticle {
    *
    * @param clientReq 请求
    */
-  private void handlerTunnelProxy(HttpServerRequest clientReq) {
-    String[] hostSplit = clientReq.host().split(":");
-    int remotePort = Integer.parseInt(hostSplit[1]);
-    String remoteHost = hostSplit[0];
+  private void handlerHttpsProxy(HttpServerRequest clientReq) {
 
     // 建立和目标服务器之间的连接
-    netClient.connect(remotePort, remoteHost)
+    String[] urlSplit = clientReq.uri().split(":");
+    netClient.connect(SocketAddress.inetSocketAddress(Integer.parseInt(urlSplit[1]), urlSplit[0]))
       .onFailure(t -> {
-        log.error("链接远端服务器失败", t);
         clientReq.connection().close();
+        log.error("连接远端服务器失败 url=" + clientReq.uri() + " msg=" + t.getMessage());
       })
       .onSuccess(remoteSocket -> {
         // 建立客户和目标服务器之间隧道
@@ -67,7 +68,10 @@ public class HttpProxyVerticle extends AbstractVerticle {
             clientSocket.handler(remoteSocket::write).closeHandler(v -> remoteSocket.close());
             remoteSocket.handler(clientSocket::write).closeHandler(v -> clientSocket.close());
             log.info("Tunnel {}:{} ----> {}:{}",
-              clientSocket.remoteAddress().host(), clientSocket.remoteAddress().port(), remoteHost, remotePort);
+              clientSocket.remoteAddress().host(),
+              clientSocket.remoteAddress().port(),
+              remoteSocket.remoteAddress().host(),
+              remoteSocket.remoteAddress().port());
           });
       });
   }
@@ -84,7 +88,7 @@ public class HttpProxyVerticle extends AbstractVerticle {
         .onSuccess(httpClientReq -> {
           // 复制请求头
           for (Map.Entry<String, String> header : clientReq.headers()) {
-            if (Objects.equals("Proxy-Connection", header.getKey())) {
+            if (Objects.equals(PROXY_CONNECTION_HEADER, header.getKey())) {
               httpClientReq.putHeader(HttpHeaders.CONNECTION, header.getValue());
             }
             httpClientReq.putHeader(header.getKey(), header.getValue());
