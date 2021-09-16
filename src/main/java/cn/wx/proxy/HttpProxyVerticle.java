@@ -1,11 +1,13 @@
 package cn.wx.proxy;
 
+import cn.wx.proxy.constant.EventBusAddr;
+import cn.wx.proxy.domain.AddProxy;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Handler;
 import io.vertx.core.Promise;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.SocketAddress;
 import lombok.extern.log4j.Log4j2;
@@ -28,10 +30,11 @@ public class HttpProxyVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> promise) {
+
     netClient = vertx.createNetClient();
     httpClient = vertx.createHttpClient();
 
-    vertx.createHttpServer()
+    vertx.createHttpServer(new HttpServerOptions().setTcpNoDelay(true).setTcpFastOpen(true).setTcpQuickAck(true))
       .requestHandler(request -> {
         if (request.method().equals(HttpMethod.CONNECT)) {
           handlerHttpsProxy(request);

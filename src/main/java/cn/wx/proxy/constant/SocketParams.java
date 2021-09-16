@@ -98,6 +98,9 @@ public class SocketParams {
   @Accessors(fluent = true)
   @AllArgsConstructor
   public enum REP {
+    /**
+     * 成功
+     */
     Succeeded((byte) 0x00),
     GeneralSocksServerFailure((byte) 0x01),
     ConnectionNotAllowedByRuleset((byte) 0x02),
@@ -107,11 +110,11 @@ public class SocketParams {
     TtlExpired((byte) 0x06),
     CommandNotSupported((byte) 0x07),
     AddressTypeNotSupported((byte) 0x08),
-    /**
-     * 0x09 - 0xff
-     */
-    Unassigned((byte) 0x09),
+
     ;
+    /**
+     * 0x09 - 0xff  Unassigned
+     */
     final byte byteCode;
 
     public static REP valueOfCode(byte byteCode) {

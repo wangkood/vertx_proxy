@@ -1,0 +1,48 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+== 同步阻塞IO ==
+App -> System: recvfrom
+
+System -> System: 准备数据
+System -> System: 复制数据
+System -> App: 返回成功
+
+== 同步非阻塞io ==
+App -> System: recvfrom
+System -> App: 直接返回
+App -> System: recvfrom
+System -> App: 直接返回
+...
+System -> System: 准备数据
+...
+App -> System: recvfrom
+System -> System: 复制数据
+System -> App: 返回成功
+
+== io多路复用 ==
+App -> App: 线程1IO,交给select
+App -> App: 线程2IO,交给select
+App -> App: 线程nIO,交给select
+...
+App -> System: 注册select到内核，
+note right App
+ 将需要监听的socket句柄(多个)，和当对应
+ 回调函数注册到内核，当socket上有
+ 数据流时，系统会调用注册的回调方法
+end note
+
+...
+System -> System: 莫个socket上有数据流
+System -> App: 系统回调注册的函数，并返回对应socket句柄
+App -> System: recvfrom
+System -> System: 复制数据
+System -> App: 返回成功
+
+
+
+
+
+@enduml

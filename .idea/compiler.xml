@@ -10,10 +10,13 @@
         <module name="tunnel" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="tunnel" target="11" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="tunnel" options="--add-modules java.base" />
+      <module name="tunnel" options="" />
     </option>
   </component>
 </project>
