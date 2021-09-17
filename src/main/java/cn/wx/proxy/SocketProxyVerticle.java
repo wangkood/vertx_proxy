@@ -2,8 +2,8 @@ package cn.wx.proxy;
 
 import cn.wx.proxy.constant.SocketParams;
 import cn.wx.proxy.constant.SocketProxyStage;
-import cn.wx.proxy.handler.SocketTunnel;
 import cn.wx.proxy.util.SocketParseUtils;
+import cn.wx.proxy.util.TunnelUtils;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetClient;
@@ -148,7 +148,7 @@ public class SocketProxyVerticle extends AbstractVerticle {
     netClient.connect(addr)
       .onSuccess(remoteSocket -> {
         // 建立隧道
-        new SocketTunnel(vertx, socket, remoteSocket);
+        TunnelUtils.createTunnel(socket, remoteSocket);
 
         // 响应客户端成功
         byte[] clone = bytes.clone();

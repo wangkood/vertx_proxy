@@ -2,6 +2,7 @@ package cn.wx.proxy;
 
 import cn.wx.proxy.constant.EventBusAddr;
 import cn.wx.proxy.domain.AddProxy;
+import cn.wx.proxy.util.TunnelUtils;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
@@ -68,8 +69,8 @@ public class HttpProxyVerticle extends AbstractVerticle {
         clientReq.toNetSocket()
           .onFailure(log::error)
           .onSuccess(clientSocket -> {
-            clientSocket.handler(remoteSocket::write).closeHandler(v -> remoteSocket.close());
-            remoteSocket.handler(clientSocket::write).closeHandler(v -> clientSocket.close());
+            TunnelUtils.createTunnel(clientSocket, remoteSocket);
+
             log.info("Tunnel {}:{} ----> {}:{}",
               clientSocket.remoteAddress().host(),
               clientSocket.remoteAddress().port(),
